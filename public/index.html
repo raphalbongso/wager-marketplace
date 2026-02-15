@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wager Market Exchange</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; background: #0a0a0a; color: #e0e0e0; }
+    a { color: #6cb4ee; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; margin-bottom: 16px; }
+    header h1 { font-size: 18px; color: #fff; }
+    .user-info { font-size: 13px; color: #888; }
+    .user-info span { color: #6cb4ee; margin-right: 8px; }
+    button { background: #1a73e8; color: #fff; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    button:hover { background: #1557b0; }
+    button.danger { background: #c62828; }
+    button.danger:hover { background: #a31515; }
+    button.secondary { background: #333; }
+    button.secondary:hover { background: #444; }
+    input, select { background: #1a1a1a; color: #e0e0e0; border: 1px solid #333; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    input:focus, select:focus { border-color: #1a73e8; outline: none; }
+    .grid { display: grid; gap: 16px; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .card { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 16px; }
+    .card h2 { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+    .card h3 { font-size: 15px; margin-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; color: #666; font-weight: 500; padding: 6px 8px; border-bottom: 1px solid #222; }
+    td { padding: 6px 8px; border-bottom: 1px solid #1a1a1a; }
+    .bid { color: #4caf50; }
+    .ask { color: #f44336; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+    .tag-open { background: #1b5e20; color: #81c784; }
+    .tag-resolved { background: #4a148c; color: #ce93d8; }
+    .tag-admin { background: #e65100; color: #ffb74d; }
+    .metric { text-align: center; }
+    .metric .value { font-size: 28px; font-weight: 700; color: #fff; }
+    .metric .label { font-size: 12px; color: #666; margin-top: 4px; }
+    .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .form-row label { font-size: 12px; color: #888; min-width: 60px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab { padding: 8px 16px; background: #1a1a1a; border: 1px solid #222; border-radius: 4px 4px 0 0; cursor: pointer; font-size: 13px; color: #888; }
+    .tab.active { background: #141414; color: #fff; border-bottom-color: #141414; }
+    .hidden { display: none; }
+    #auth-section { max-width: 400px; margin: 100px auto; }
+    .flash { padding: 8px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; }
+    .flash-error { background: #3e1111; color: #f48771; border: 1px solid #5c1d1d; }
+    .flash-success { background: #0d2818; color: #81c784; border: 1px solid #1b5e20; }
+    .book-row { display: flex; }
+    .book-side { flex: 1; }
+    .book-side table { width: 100%; }
+    .mono { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .text-right { text-align: right; }
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Auth Section -->
+  <div id="auth-section">
+    <div class="container">
+      <div class="card">
+        <h2>Wager Market Exchange</h2>
+        <div id="auth-flash"></div>
+        <div class="tabs">
+          <div class="tab active" onclick="showAuthTab('login')">Login</div>
+          <div class="tab" onclick="showAuthTab('register')">Register</div>
+        </div>
+        <div id="login-form">
+          <div class="form-row"><label>Email</label><input id="login-email" type="email" style="flex:1" /></div>
+          <div class="form-row"><label>Password</label><input id="login-password" type="password" style="flex:1" /></div>
+          <button onclick="doLogin()" style="width:100%;margin-top:8px">Login</button>
+        </div>
+        <div id="register-form" class="hidden">
+          <div class="form-row"><label>Email</label><input id="reg-email" type="email" style="flex:1" /></div>
+          <div class="form-row"><label>Password</label><input id="reg-password" type="password" style="flex:1" /></div>
+          <button onclick="doRegister()" style="width:100%;margin-top:8px">Register</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app-section" class="hidden">
+    <div class="container">
+      <header>
+        <h1>Wager Market Exchange</h1>
+        <div class="user-info">
+          <span id="user-email"></span>
+          <span id="user-role" class="tag"></span>
+          <span id="user-balance" class="mono"></span>
+          <button class="secondary" onclick="doLogout()" style="margin-left:8px">Logout</button>
+        </div>
+      </header>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" onclick="showTab('markets')" id="tab-markets">Markets</div>
+        <div class="tab" onclick="showTab('market-detail')" id="tab-market-detail">Market Detail</div>
+        <div class="tab" onclick="showTab('admin')" id="tab-admin">Admin</div>
+      </div>
+
+      <!-- Markets Tab -->
+      <div id="panel-markets">
+        <div class="card">
+          <h2>Open Markets</h2>
+          <table>
+            <thead><tr><th>Title</th><th>Slug</th><th>Status</th><th>Best Bid</th><th>Best Ask</th><th></th></tr></thead>
+            <tbody id="markets-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Market Detail Tab -->
+      <div id="panel-market-detail" class="hidden">
+        <div id="market-header" class="card" style="margin-bottom:16px">
+          <h3 id="market-title">Select a market</h3>
+          <div id="market-status" style="font-size:13px;color:#888"></div>
+        </div>
+        <div class="grid grid-2">
+          <!-- Order Book -->
+          <div class="card">
+            <h2>Order Book</h2>
+            <div class="book-row">
+              <div class="book-side">
+                <table><thead><tr><th class="text-right">Qty</th><th class="text-right bid">Bid</th></tr></thead>
+                <tbody id="book-bids"></tbody></table>
+              </div>
+              <div class="book-side">
+                <table><thead><tr><th class="ask">Ask</th><th>Qty</th></tr></thead>
+                <tbody id="book-asks"></tbody></table>
+              </div>
+            </div>
+          </div>
+          <!-- Place Order -->
+          <div class="card">
+            <h2>Place Order</h2>
+            <div class="form-row"><label>Side</label><select id="order-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
+            <div class="form-row"><label>Type</label><select id="order-type" onchange="togglePrice()"><option value="LIMIT">LIMIT</option><option value="MARKET">MARKET</option></select></div>
+            <div class="form-row" id="price-row"><label>Price ¢</label><input id="order-price" type="number" min="1" max="99" value="50" style="width:80px" /></div>
+            <div class="form-row"><label>Qty</label><input id="order-qty" type="number" min="1" value="10" style="width:80px" /></div>
+            <button onclick="placeOrder()" style="width:100%;margin-top:8px">Submit Order</button>
+            <div id="order-flash" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="grid grid-2" style="margin-top:16px">
+          <!-- My Orders -->
+          <div class="card">
+            <h2>My Orders</h2>
+            <table>
+              <thead><tr><th>Side</th><th>Price</th><th>Qty</th><th>Rem</th><th>Status</th><th></th></tr></thead>
+              <tbody id="my-orders-tbody"></tbody>
+            </table>
+          </div>
+          <!-- Recent Trades -->
+          <div class="card">
+            <h2>Recent Trades</h2>
+            <table>
+              <thead><tr><th>Price</th><th>Qty</th><th>Time</th></tr></thead>
+              <tbody id="trades-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Tab -->
+      <div id="panel-admin" class="hidden">
+        <div class="grid grid-3" style="margin-bottom:16px" id="metrics-grid"></div>
+        <div class="grid grid-2">
+          <!-- Create Market -->
+          <div class="card">
+            <h2>Create Market</h2>
+            <div class="form-row"><label>Slug</label><input id="cm-slug" placeholder="will-it-rain-tomorrow" style="flex:1" /></div>
+            <div class="form-row"><label>Title</label><input id="cm-title" placeholder="Will it rain tomorrow?" style="flex:1" /></div>
+            <div class="form-row"><label>Desc</label><input id="cm-desc" placeholder="Optional description" style="flex:1" /></div>
+            <button onclick="createMarket()" style="width:100%;margin-top:8px">Create Market</button>
+            <div id="cm-flash" style="margin-top:8px"></div>
+          </div>
+          <!-- Deposit -->
+          <div class="card">
+            <h2>Deposit to User</h2>
+            <div class="form-row"><label>User</label><select id="dep-user" style="flex:1"></select></div>
+            <div class="form-row"><label>Amount ¢</label><input id="dep-amount" type="number" min="1" value="100000" style="width:120px" /></div>
+            <button onclick="doDeposit()" style="width:100%;margin-top:8px">Deposit</button>
+            <div id="dep-flash" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h2>Resolve Market</h2>
+          <div class="form-row">
+            <label>Market</label><select id="resolve-market" style="flex:1"></select>
+            <select id="resolve-to"><option value="YES">YES</option><option value="NO">NO</option></select>
+            <button onclick="resolveMarket()">Resolve</button>
+          </div>
+          <div id="resolve-flash" style="margin-top:8px"></div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h2>Event Log</h2>
+          <table>
+            <thead><tr><th>Time</th><th>Type</th><th>Market</th><th>Payload</th></tr></thead>
+            <tbody id="events-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
