@@ -1,0 +1,19 @@
+{
+  "buildCommand": "cd packages/server && npx prisma generate",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/auth/(.*)", "destination": "/api" },
+    { "source": "/markets/(.*)", "destination": "/api" },
+    { "source": "/markets", "destination": "/api" },
+    { "source": "/wallet/(.*)", "destination": "/api" },
+    { "source": "/wallet", "destination": "/api" },
+    { "source": "/me", "destination": "/api" },
+    { "source": "/admin/(.*)", "destination": "/api" },
+    { "source": "/anchor-bets/(.*)", "destination": "/api" },
+    { "source": "/anchor-bets", "destination": "/api" },
+    { "source": "/health", "destination": "/api" }
+  ]
+}
