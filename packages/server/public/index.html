@@ -3,184 +3,372 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wager Market Exchange</title>
+  <title>WagerX – Prediction Market Exchange</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          colors: {
+            bg: '#0d1117',
+            surface: '#161b22',
+            surfaceHover: '#1c2129',
+            border: '#30363d',
+            muted: '#8b949e',
+            accent: '#2E5CFF',
+            accentHover: '#4B73FF',
+            yes: '#27AE60',
+            no: '#F55A00',
+          },
+        },
+      },
+    };
+  </script>
   <style>
-    :root {
-      --bg: #0d1117; --surface: #161b22; --border: #30363d;
-      --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
-      --green: #3fb950; --red: #f85149; --yellow: #d29922;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      background: var(--bg); color: var(--text); line-height: 1.5; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
-    h1, h2, h3 { margin-bottom: 12px; }
-    a { color: var(--accent); text-decoration: none; }
-    button { background: var(--accent); color: #fff; border: none; padding: 8px 16px;
-      border-radius: 6px; cursor: pointer; font-size: 14px; }
-    button:hover { opacity: 0.9; }
-    button.danger { background: var(--red); }
-    button.secondary { background: var(--border); }
-    input, select { background: var(--surface); color: var(--text); border: 1px solid var(--border);
-      padding: 8px 12px; border-radius: 6px; font-size: 14px; }
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-      padding: 16px; margin-bottom: 16px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
-    .bid { color: var(--green); } .ask { color: var(--red); }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
-    .badge-open { background: #1f6f2b33; color: var(--green); }
-    .badge-resolved { background: #8b949e33; color: var(--muted); }
-    .flex { display: flex; gap: 8px; align-items: center; }
-    .flex-between { display: flex; justify-content: space-between; align-items: center; }
-    .mb { margin-bottom: 12px; }
-    .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: end; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 12px; color: var(--muted); }
-    .stat { text-align: center; }
-    .stat .value { font-size: 24px; font-weight: 700; }
-    .stat .label { font-size: 12px; color: var(--muted); }
-    .nav { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-    .nav a { padding: 4px 0; } .nav a.active { border-bottom: 2px solid var(--accent); }
-    .toast { position: fixed; top: 16px; right: 16px; padding: 12px 20px; border-radius: 8px;
-      background: var(--surface); border: 1px solid var(--border); z-index: 1000; display: none; }
-    .toast.error { border-color: var(--red); }
-    .toast.success { border-color: var(--green); }
-    #auth-section, #app-section { display: none; }
-    .hidden { display: none !important; }
+    * { scrollbar-width: thin; scrollbar-color: #30363d #0d1117; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .animate-fade { animation: fadeIn 0.2s ease-out; }
+    .animate-slide { animation: slideIn 0.3s ease-out; }
+    .depth-bar { position: relative; }
+    .depth-bar::before { content: ''; position: absolute; top: 0; bottom: 0; right: 0; border-radius: 4px; z-index: 0; }
+    .depth-bar > * { position: relative; z-index: 1; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; }
+    .tab-active { border-bottom: 2px solid #2E5CFF; color: #e6edf3; }
+    .tab-inactive { color: #8b949e; }
+    .tab-inactive:hover { color: #c9d1d9; }
   </style>
 </head>
-<body>
-  <div id="toast" class="toast"></div>
-  <div class="container">
-    <div class="flex-between mb">
-      <h1>Wager Exchange</h1>
-      <div class="flex">
-        <span id="user-email" style="color:var(--muted)"></span>
-        <button id="logout-btn" class="secondary hidden" onclick="logout()">Logout</button>
-      </div>
-    </div>
+<body class="bg-bg text-gray-200 font-sans min-h-screen">
 
-    <!-- Auth -->
-    <div id="auth-section" class="card">
-      <h2>Login / Register</h2>
-      <div class="form-row">
-        <div class="form-group"><label>Email</label><input id="auth-email" type="email" placeholder="email@example.com"></div>
-        <div class="form-group"><label>Password</label><input id="auth-pass" type="password" placeholder="password"></div>
-        <button onclick="doLogin()">Login</button>
-        <button class="secondary" onclick="doRegister()">Register</button>
-      </div>
-    </div>
-
-    <!-- App -->
-    <div id="app-section">
-      <nav class="nav">
-        <a href="#" onclick="showPage('markets')" id="nav-markets">Markets</a>
-        <a href="#" onclick="showPage('admin')" id="nav-admin" class="hidden">Admin</a>
-      </nav>
-
-      <!-- Markets List -->
-      <div id="page-markets">
-        <div class="flex-between mb">
-          <h2>Markets</h2>
-          <div class="flex">
-            <span id="wallet-display" style="color:var(--muted)"></span>
-          </div>
-        </div>
-        <div id="markets-list"></div>
-      </div>
-
-      <!-- Market Detail -->
-      <div id="page-market-detail" class="hidden">
-        <div class="flex-between mb">
-          <div><a href="#" onclick="showPage('markets')">&larr; Back</a></div>
-          <h2 id="market-title"></h2>
-          <span id="market-status" class="badge"></span>
-        </div>
-
-        <div class="grid mb">
-          <div class="card">
-            <h3>Order Book</h3>
-            <div class="grid">
-              <div>
-                <table><thead><tr><th>Bid Price</th><th>Qty</th></tr></thead><tbody id="bids-table"></tbody></table>
-              </div>
-              <div>
-                <table><thead><tr><th>Ask Price</th><th>Qty</th></tr></thead><tbody id="asks-table"></tbody></table>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <h3>Place Order</h3>
-            <div class="form-group mb"><label>Side</label>
-              <select id="order-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
-            <div class="form-group mb"><label>Type</label>
-              <select id="order-type" onchange="togglePrice()"><option value="LIMIT">LIMIT</option><option value="MARKET">MARKET</option></select></div>
-            <div class="form-group mb" id="price-group"><label>Price (cents 1-99)</label>
-              <input id="order-price" type="number" min="1" max="99" value="50"></div>
-            <div class="form-group mb"><label>Quantity</label>
-              <input id="order-qty" type="number" min="1" value="10"></div>
-            <button onclick="placeOrder()">Submit Order</button>
-            <div style="margin-top:12px">
-              <h3>My Position</h3>
-              <div id="position-display" style="color:var(--muted)">-</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="card">
-            <h3>My Open Orders</h3>
-            <table><thead><tr><th>Side</th><th>Price</th><th>Qty</th><th>Remaining</th><th></th></tr></thead>
-              <tbody id="my-orders-table"></tbody></table>
-          </div>
-          <div class="card">
-            <h3>Recent Trades</h3>
-            <table><thead><tr><th>Price</th><th>Qty</th><th>Fee</th><th>Time</th></tr></thead>
-              <tbody id="trades-table"></tbody></table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Admin Panel -->
-      <div id="page-admin" class="hidden">
-        <h2>Admin Panel</h2>
-        <div class="grid-3 mb" id="admin-metrics"></div>
-
-        <div class="grid mb">
-          <div class="card">
-            <h3>Create Market</h3>
-            <div class="form-group mb"><label>Slug</label><input id="cm-slug" placeholder="will-it-rain"></div>
-            <div class="form-group mb"><label>Title</label><input id="cm-title" placeholder="Will it rain tomorrow?"></div>
-            <div class="form-group mb"><label>Description</label><input id="cm-desc" placeholder="Optional description"></div>
-            <button onclick="createMarket()">Create</button>
-          </div>
-          <div class="card">
-            <h3>Deposit Funds</h3>
-            <div class="form-group mb"><label>User ID</label><input id="dep-user" placeholder="user uuid"></div>
-            <div class="form-group mb"><label>Amount (cents)</label><input id="dep-amount" type="number" value="10000"></div>
-            <button onclick="deposit()">Deposit</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Users</h3>
-          <table><thead><tr><th>Email</th><th>Role</th><th>Balance</th><th>Locked</th><th>ID</th></tr></thead>
-            <tbody id="admin-users-table"></tbody></table>
-        </div>
-
-        <div class="card">
-          <h3>Event Log (last 50)</h3>
-          <table><thead><tr><th>Type</th><th>Market</th><th>Payload</th><th>Time</th></tr></thead>
-            <tbody id="admin-events-table"></tbody></table>
-        </div>
-      </div>
-    </div>
+  <!-- Toast -->
+  <div id="toast" class="fixed top-4 right-4 z-50 hidden animate-slide">
+    <div class="px-5 py-3 rounded-xl bg-surface border border-border shadow-lg text-sm font-medium" id="toast-inner"></div>
   </div>
+
+  <!-- Nav -->
+  <nav class="sticky top-0 z-40 bg-bg/80 backdrop-blur-md border-b border-border">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-6">
+        <span class="text-lg font-extrabold tracking-tight text-white cursor-pointer" onclick="showPage('markets')">Wager<span class="text-accent">X</span></span>
+        <div id="nav-links" class="hidden sm:flex items-center gap-1 text-sm font-medium">
+          <a href="#" onclick="showPage('markets');return false" id="nav-markets" class="px-3 py-1.5 rounded-lg hover:bg-surface transition">Markets</a>
+          <a href="#" onclick="showPage('portfolio');return false" id="nav-portfolio" class="px-3 py-1.5 rounded-lg hover:bg-surface transition">Portfolio</a>
+          <a href="#" onclick="showPage('anchor-bets');return false" id="nav-anchor-bets" class="px-3 py-1.5 rounded-lg hover:bg-surface transition">Anchor Bets</a>
+          <a href="#" onclick="showPage('admin');return false" id="nav-admin" class="hidden px-3 py-1.5 rounded-lg hover:bg-surface transition">Admin</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="wallet-badge" class="hidden text-xs font-semibold bg-surface border border-border rounded-full px-3 py-1">
+          <span class="text-muted">Balance:</span> <span id="wallet-amount" class="text-white">$0.00</span>
+        </div>
+        <span id="user-email" class="text-xs text-muted hidden"></span>
+        <button id="logout-btn" class="hidden text-xs text-muted hover:text-white transition px-2 py-1 rounded-lg hover:bg-surface" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+    <!-- Auth Page -->
+    <div id="page-auth" class="hidden">
+      <div class="flex items-center justify-center min-h-[70vh]">
+        <div class="w-full max-w-md">
+          <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-white">Wager<span class="text-accent">X</span></h1>
+            <p class="text-muted text-sm mt-2">Prediction Market Exchange</p>
+          </div>
+          <div class="bg-surface border border-border rounded-2xl p-6 animate-fade">
+            <div class="flex mb-6 border-b border-border">
+              <button onclick="setAuthTab('login')" id="auth-tab-login" class="flex-1 pb-3 text-sm font-semibold tab-active">Log In</button>
+              <button onclick="setAuthTab('register')" id="auth-tab-register" class="flex-1 pb-3 text-sm font-semibold tab-inactive">Register</button>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-medium text-muted mb-1.5">Email</label>
+                <input id="auth-email" type="email" placeholder="you@example.com" class="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm focus:border-accent focus:outline-none transition" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-muted mb-1.5">Password</label>
+                <input id="auth-pass" type="password" placeholder="Min. 8 characters" class="w-full bg-bg border border-border rounded-xl px-4 py-2.5 text-sm focus:border-accent focus:outline-none transition" onkeydown="if(event.key==='Enter')doAuth()" />
+              </div>
+              <button id="auth-submit-btn" onclick="doAuth()" class="w-full bg-accent hover:bg-accentHover text-white font-semibold py-2.5 rounded-xl transition text-sm">Log In</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Markets Page -->
+    <div id="page-markets" class="hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h2 class="text-xl font-bold text-white">Markets</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="filterMarkets('ALL')" id="filter-all" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-accent text-white transition">All</button>
+          <button onclick="filterMarkets('OPEN')" id="filter-open" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-surface text-muted border border-border hover:text-white transition">Open</button>
+          <button onclick="filterMarkets('RESOLVED')" id="filter-resolved" class="text-xs font-semibold px-3 py-1.5 rounded-full bg-surface text-muted border border-border hover:text-white transition">Resolved</button>
+        </div>
+      </div>
+      <div id="markets-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- Market Detail Page -->
+    <div id="page-market-detail" class="hidden">
+      <!-- Back + title -->
+      <div class="mb-6">
+        <button onclick="showPage('markets')" class="text-sm text-muted hover:text-white transition mb-3 inline-flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          Back to Markets
+        </button>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <h2 id="market-title" class="text-2xl font-bold text-white flex-1"></h2>
+          <span id="market-status-badge"></span>
+        </div>
+      </div>
+
+      <!-- Hero probability -->
+      <div id="market-hero" class="bg-surface border border-border rounded-2xl p-6 mb-6 flex flex-col sm:flex-row items-center gap-6">
+        <div class="text-center sm:text-left">
+          <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-1">Implied Probability</div>
+          <div id="market-probability" class="text-5xl font-extrabold text-white">—</div>
+        </div>
+        <div class="flex-1 grid grid-cols-3 gap-4 text-center text-sm">
+          <div><div class="text-muted text-xs">Best Bid</div><div id="market-best-bid" class="text-yes font-bold text-lg">—</div></div>
+          <div><div class="text-muted text-xs">Best Ask</div><div id="market-best-ask" class="text-no font-bold text-lg">—</div></div>
+          <div><div class="text-muted text-xs">Spread</div><div id="market-spread" class="text-white font-bold text-lg">—</div></div>
+        </div>
+        <!-- Resolve buttons (admin only) -->
+        <div id="resolve-buttons" class="hidden flex gap-2">
+          <button onclick="resolveMarket('YES')" class="bg-yes/20 text-yes hover:bg-yes/30 font-semibold text-sm px-4 py-2 rounded-xl transition">Resolve YES</button>
+          <button onclick="resolveMarket('NO')" class="bg-no/20 text-no hover:bg-no/30 font-semibold text-sm px-4 py-2 rounded-xl transition">Resolve NO</button>
+        </div>
+      </div>
+
+      <!-- Book + Trade Panel -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Order Book -->
+        <div class="lg:col-span-2 bg-surface border border-border rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Order Book</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs font-semibold text-yes mb-2">Bids</div>
+              <div id="bids-book" class="space-y-1"></div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-no mb-2">Asks</div>
+              <div id="asks-book" class="space-y-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trade Panel -->
+        <div class="bg-surface border border-border rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Trade</h3>
+          <!-- Buy/Sell toggle -->
+          <div class="flex mb-4 bg-bg rounded-xl p-1">
+            <button onclick="setSide('BUY')" id="side-buy" class="flex-1 text-sm font-semibold py-2 rounded-lg bg-yes text-white transition">Buy</button>
+            <button onclick="setSide('SELL')" id="side-sell" class="flex-1 text-sm font-semibold py-2 rounded-lg text-muted transition">Sell</button>
+          </div>
+          <!-- Type -->
+          <div class="mb-3">
+            <label class="block text-xs font-medium text-muted mb-1">Type</label>
+            <select id="order-type" onchange="togglePrice()" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none">
+              <option value="LIMIT">Limit</option>
+              <option value="MARKET">Market</option>
+            </select>
+          </div>
+          <!-- Price -->
+          <div id="price-group" class="mb-3">
+            <label class="block text-xs font-medium text-muted mb-1">Price (1-99¢)</label>
+            <input id="order-price" type="number" min="1" max="99" value="50" oninput="estimateCost()" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+          </div>
+          <!-- Quantity -->
+          <div class="mb-3">
+            <label class="block text-xs font-medium text-muted mb-1">Shares</label>
+            <input id="order-qty" type="number" min="1" value="10" oninput="estimateCost()" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+          </div>
+          <!-- Cost estimate -->
+          <div id="cost-estimate" class="text-xs text-muted mb-4 px-1"></div>
+          <!-- Submit -->
+          <button id="order-submit-btn" onclick="placeOrder()" class="w-full bg-yes hover:bg-yes/80 text-white font-semibold py-2.5 rounded-xl transition text-sm">Buy YES</button>
+
+          <!-- Position -->
+          <div class="mt-5 pt-4 border-t border-border">
+            <div class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Your Position</div>
+            <div id="position-display" class="text-sm text-muted">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders + Trades -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- My Orders -->
+        <div class="bg-surface border border-border rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-muted uppercase tracking-wider">My Orders</h3>
+            <div class="flex gap-1">
+              <button onclick="filterOrders('ALL')" id="orders-filter-all" class="text-xs px-2.5 py-1 rounded-full bg-accent text-white font-semibold">All</button>
+              <button onclick="filterOrders('OPEN')" id="orders-filter-open" class="text-xs px-2.5 py-1 rounded-full bg-bg text-muted border border-border font-semibold">Open</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="text-xs text-muted uppercase">
+                <th class="text-left pb-2">Side</th><th class="text-left pb-2">Price</th><th class="text-right pb-2">Qty</th><th class="text-right pb-2">Rem</th><th class="text-left pb-2">Status</th><th class="pb-2"></th>
+              </tr></thead>
+              <tbody id="my-orders-table"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Trades -->
+        <div class="bg-surface border border-border rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Recent Trades</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="text-xs text-muted uppercase">
+                <th class="text-left pb-2">Price</th><th class="text-right pb-2">Qty</th><th class="text-right pb-2">Fee</th><th class="text-right pb-2">Time</th>
+              </tr></thead>
+              <tbody id="trades-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portfolio Page -->
+    <div id="page-portfolio" class="hidden">
+      <h2 class="text-xl font-bold text-white mb-6">Portfolio</h2>
+      <div id="portfolio-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6"></div>
+      <div class="bg-surface border border-border rounded-2xl p-5">
+        <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Positions</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-xs text-muted uppercase">
+              <th class="text-left pb-2">Market</th><th class="text-right pb-2">YES Shares</th><th class="text-right pb-2">Avg Cost</th><th class="text-right pb-2">Realized PnL</th>
+            </tr></thead>
+            <tbody id="portfolio-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anchor Bets Page -->
+    <div id="page-anchor-bets" class="hidden">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-white">Anchor Bets</h2>
+        <button onclick="toggleAnchorForm()" id="anchor-form-toggle" class="text-sm font-semibold bg-accent hover:bg-accentHover text-white px-4 py-2 rounded-xl transition">+ New Anchor Bet</button>
+      </div>
+
+      <!-- Create form (hidden by default) -->
+      <div id="anchor-form" class="hidden bg-surface border border-border rounded-2xl p-5 mb-6 animate-fade">
+        <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Create Anchor Bet</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1">Title</label>
+            <input id="ab-title" placeholder="Will X happen?" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1">Opponent User ID (optional)</label>
+            <input id="ab-opponent" placeholder="UUID" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-muted mb-1">Rules</label>
+            <textarea id="ab-rules" rows="2" placeholder="Describe the bet rules..." class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none resize-none"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-muted mb-1">Arbitrator User ID (optional)</label>
+            <input id="ab-arbitrator" placeholder="UUID" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+          </div>
+        </div>
+        <button onclick="createAnchorBet()" class="mt-4 bg-accent hover:bg-accentHover text-white font-semibold text-sm px-5 py-2 rounded-xl transition">Create</button>
+      </div>
+
+      <div id="anchor-bets-list" class="space-y-4"></div>
+    </div>
+
+    <!-- Admin Page -->
+    <div id="page-admin" class="hidden">
+      <h2 class="text-xl font-bold text-white mb-6">Admin Panel</h2>
+
+      <!-- Metrics -->
+      <div id="admin-metrics" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6"></div>
+
+      <!-- Create + Deposit -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="bg-surface border border-border rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Create Market</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Slug</label>
+              <input id="cm-slug" placeholder="will-it-rain" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Title</label>
+              <input id="cm-title" placeholder="Will it rain tomorrow?" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Description</label>
+              <input id="cm-desc" placeholder="Optional description" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+            </div>
+            <button onclick="createMarket()" class="bg-accent hover:bg-accentHover text-white font-semibold text-sm px-5 py-2 rounded-xl transition">Create Market</button>
+          </div>
+        </div>
+        <div class="bg-surface border border-border rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Deposit Funds</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">User</label>
+              <select id="dep-user" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none">
+                <option value="">Select user…</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-muted mb-1">Amount (cents)</label>
+              <input id="dep-amount" type="number" value="10000" class="w-full bg-bg border border-border rounded-xl px-3 py-2 text-sm focus:border-accent focus:outline-none" />
+            </div>
+            <button onclick="deposit()" class="bg-accent hover:bg-accentHover text-white font-semibold text-sm px-5 py-2 rounded-xl transition">Deposit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="bg-surface border border-border rounded-2xl p-5 mb-6">
+        <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Users</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-xs text-muted uppercase">
+              <th class="text-left pb-2">Email</th><th class="text-left pb-2">Role</th><th class="text-right pb-2">Balance</th><th class="text-right pb-2">Locked</th><th class="text-left pb-2">ID</th>
+            </tr></thead>
+            <tbody id="admin-users-table"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Event Log -->
+      <div class="bg-surface border border-border rounded-2xl p-5">
+        <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-4">Event Log (last 50)</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-xs text-muted uppercase">
+              <th class="text-left pb-2">Type</th><th class="text-left pb-2">Market</th><th class="text-left pb-2">Payload</th><th class="text-right pb-2">Time</th>
+            </tr></thead>
+            <tbody id="admin-events-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
   <script src="/app.js"></script>
 </body>
 </html>
