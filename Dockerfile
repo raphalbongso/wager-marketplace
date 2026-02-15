@@ -1,31 +1,15 @@
-FROM node:20-alpine AS base
+FROM golang:1.22-alpine AS build
 WORKDIR /app
-
-# Install dependencies
-COPY package.json package-lock.json* ./
-COPY prisma ./prisma/
-RUN npm install --production=false
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy source
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
+RUN CGO_ENABLED=0 go build -o /server ./cmd/server
 
-# Build TypeScript
-RUN npm run build
-
-# Production stage
-FROM node:20-alpine AS production
+FROM alpine:3.19
+RUN apk add --no-cache ca-certificates
 WORKDIR /app
-
-COPY --from=base /app/dist ./dist
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/package.json ./
-COPY --from=base /app/prisma ./prisma
-COPY --from=base /app/public ./public
-
-# Run migrations then start
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
-
-EXPOSE 3000
+COPY --from=build /server .
+COPY migrations ./migrations
+COPY web ./web
+EXPOSE 4000
+CMD ["./server"]
