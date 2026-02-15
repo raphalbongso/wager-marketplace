@@ -1,0 +1,25 @@
+{
+  "name": "wager-marketplace",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @wager/server dev",
+    "build": "pnpm --filter @wager/server build",
+    "start": "pnpm --filter @wager/server start",
+    "test": "pnpm --filter @wager/server test",
+    "db:migrate": "pnpm --filter @wager/server db:migrate",
+    "db:seed": "pnpm --filter @wager/server db:seed",
+    "db:generate": "pnpm --filter @wager/server db:generate"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "prisma"
+    ]
+  }
+}

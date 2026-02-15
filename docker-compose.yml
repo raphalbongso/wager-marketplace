@@ -1,7 +1,8 @@
+version: "3.9"
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: wager-exchange-pg
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,18 +13,17 @@ services:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 3s
+      interval: 5s
       timeout: 3s
-      retries: 10
+      retries: 5
 
   app:
     build: .
-    container_name: wager-exchange-app
     ports:
       - "4000:4000"
     environment:
-      DATABASE_URL: "postgres://postgres:postgres@postgres:5432/wager_exchange?sslmode=disable"
-      JWT_SECRET: "change-me-in-production-32-chars!!"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/wager_exchange?schema=public
+      JWT_SECRET: dev-secret-at-least-32-characters!!
       PORT: "4000"
       TAKER_FEE_BPS: "100"
     depends_on:

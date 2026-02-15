@@ -1,5 +1,8 @@
+node_modules/
+dist/
 .env
-/server
-/server.exe
-/tmp
+*.log
+.DS_Store
 *.exe
+coverage/
+.turbo/
