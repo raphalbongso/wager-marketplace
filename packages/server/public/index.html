@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wager Market Exchange</title>
+  <style>
+    :root {
+      --bg: #0d1117; --surface: #161b22; --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+      --green: #3fb950; --red: #f85149; --yellow: #d29922;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+    h1, h2, h3 { margin-bottom: 12px; }
+    a { color: var(--accent); text-decoration: none; }
+    button { background: var(--accent); color: #fff; border: none; padding: 8px 16px;
+      border-radius: 6px; cursor: pointer; font-size: 14px; }
+    button:hover { opacity: 0.9; }
+    button.danger { background: var(--red); }
+    button.secondary { background: var(--border); }
+    input, select { background: var(--surface); color: var(--text); border: 1px solid var(--border);
+      padding: 8px 12px; border-radius: 6px; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+    .bid { color: var(--green); } .ask { color: var(--red); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .badge-open { background: #1f6f2b33; color: var(--green); }
+    .badge-resolved { background: #8b949e33; color: var(--muted); }
+    .flex { display: flex; gap: 8px; align-items: center; }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; }
+    .mb { margin-bottom: 12px; }
+    .form-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: end; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; color: var(--muted); }
+    .stat { text-align: center; }
+    .stat .value { font-size: 24px; font-weight: 700; }
+    .stat .label { font-size: 12px; color: var(--muted); }
+    .nav { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .nav a { padding: 4px 0; } .nav a.active { border-bottom: 2px solid var(--accent); }
+    .toast { position: fixed; top: 16px; right: 16px; padding: 12px 20px; border-radius: 8px;
+      background: var(--surface); border: 1px solid var(--border); z-index: 1000; display: none; }
+    .toast.error { border-color: var(--red); }
+    .toast.success { border-color: var(--green); }
+    #auth-section, #app-section { display: none; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <div class="container">
+    <div class="flex-between mb">
+      <h1>Wager Exchange</h1>
+      <div class="flex">
+        <span id="user-email" style="color:var(--muted)"></span>
+        <button id="logout-btn" class="secondary hidden" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- Auth -->
+    <div id="auth-section" class="card">
+      <h2>Login / Register</h2>
+      <div class="form-row">
+        <div class="form-group"><label>Email</label><input id="auth-email" type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Password</label><input id="auth-pass" type="password" placeholder="password"></div>
+        <button onclick="doLogin()">Login</button>
+        <button class="secondary" onclick="doRegister()">Register</button>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="app-section">
+      <nav class="nav">
+        <a href="#" onclick="showPage('markets')" id="nav-markets">Markets</a>
+        <a href="#" onclick="showPage('admin')" id="nav-admin" class="hidden">Admin</a>
+      </nav>
+
+      <!-- Markets List -->
+      <div id="page-markets">
+        <div class="flex-between mb">
+          <h2>Markets</h2>
+          <div class="flex">
+            <span id="wallet-display" style="color:var(--muted)"></span>
+          </div>
+        </div>
+        <div id="markets-list"></div>
+      </div>
+
+      <!-- Market Detail -->
+      <div id="page-market-detail" class="hidden">
+        <div class="flex-between mb">
+          <div><a href="#" onclick="showPage('markets')">&larr; Back</a></div>
+          <h2 id="market-title"></h2>
+          <span id="market-status" class="badge"></span>
+        </div>
+
+        <div class="grid mb">
+          <div class="card">
+            <h3>Order Book</h3>
+            <div class="grid">
+              <div>
+                <table><thead><tr><th>Bid Price</th><th>Qty</th></tr></thead><tbody id="bids-table"></tbody></table>
+              </div>
+              <div>
+                <table><thead><tr><th>Ask Price</th><th>Qty</th></tr></thead><tbody id="asks-table"></tbody></table>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Place Order</h3>
+            <div class="form-group mb"><label>Side</label>
+              <select id="order-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></div>
+            <div class="form-group mb"><label>Type</label>
+              <select id="order-type" onchange="togglePrice()"><option value="LIMIT">LIMIT</option><option value="MARKET">MARKET</option></select></div>
+            <div class="form-group mb" id="price-group"><label>Price (cents 1-99)</label>
+              <input id="order-price" type="number" min="1" max="99" value="50"></div>
+            <div class="form-group mb"><label>Quantity</label>
+              <input id="order-qty" type="number" min="1" value="10"></div>
+            <button onclick="placeOrder()">Submit Order</button>
+            <div style="margin-top:12px">
+              <h3>My Position</h3>
+              <div id="position-display" style="color:var(--muted)">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3>My Open Orders</h3>
+            <table><thead><tr><th>Side</th><th>Price</th><th>Qty</th><th>Remaining</th><th></th></tr></thead>
+              <tbody id="my-orders-table"></tbody></table>
+          </div>
+          <div class="card">
+            <h3>Recent Trades</h3>
+            <table><thead><tr><th>Price</th><th>Qty</th><th>Fee</th><th>Time</th></tr></thead>
+              <tbody id="trades-table"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Panel -->
+      <div id="page-admin" class="hidden">
+        <h2>Admin Panel</h2>
+        <div class="grid-3 mb" id="admin-metrics"></div>
+
+        <div class="grid mb">
+          <div class="card">
+            <h3>Create Market</h3>
+            <div class="form-group mb"><label>Slug</label><input id="cm-slug" placeholder="will-it-rain"></div>
+            <div class="form-group mb"><label>Title</label><input id="cm-title" placeholder="Will it rain tomorrow?"></div>
+            <div class="form-group mb"><label>Description</label><input id="cm-desc" placeholder="Optional description"></div>
+            <button onclick="createMarket()">Create</button>
+          </div>
+          <div class="card">
+            <h3>Deposit Funds</h3>
+            <div class="form-group mb"><label>User ID</label><input id="dep-user" placeholder="user uuid"></div>
+            <div class="form-group mb"><label>Amount (cents)</label><input id="dep-amount" type="number" value="10000"></div>
+            <button onclick="deposit()">Deposit</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Users</h3>
+          <table><thead><tr><th>Email</th><th>Role</th><th>Balance</th><th>Locked</th><th>ID</th></tr></thead>
+            <tbody id="admin-users-table"></tbody></table>
+        </div>
+
+        <div class="card">
+          <h3>Event Log (last 50)</h3>
+          <table><thead><tr><th>Type</th><th>Market</th><th>Payload</th><th>Time</th></tr></thead>
+            <tbody id="admin-events-table"></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
