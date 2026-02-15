@@ -91,11 +91,14 @@ func (s *Server) Router() http.Handler {
 		})
 	})
 
-	// Static files
-	r.Handle("/web/*", http.StripPrefix("/web/", http.FileServer(http.Dir("web"))))
+	// Static files - serve index.html directly at root
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/web/index.html", http.StatusFound)
+		http.ServeFile(w, r, "web/index.html")
 	})
+	r.Get("/app.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "web/app.js")
+	})
+	r.Handle("/web/*", http.StripPrefix("/web/", http.FileServer(http.Dir("web"))))
 
 	return r
 }
